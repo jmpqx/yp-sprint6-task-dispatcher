@@ -1,4 +1,5 @@
 #include "thread_pool/thread_pool.hpp"
+#include <atomic>
 #include <print>
 
 namespace dispatcher::thread_pool {
@@ -11,7 +12,7 @@ void ThreadPool::workerRoutine_() {
                 std::println("Exception in task: {}", e.what());
             }
         } else {
-            if (stop_) {
+            if (stop_.load(std::memory_order_acquire)) {
                 break;
             }
         }
@@ -27,7 +28,7 @@ ThreadPool::ThreadPool(std::shared_ptr<queue::PriorityQueue> task_queue, size_t 
 
 ThreadPool::~ThreadPool() {
     task_queue_->shutdown();
-    stop_ = true;
+    stop_.store(true, std::memory_order_release);
 
     for (auto &thread : threads_) {
         if (thread.joinable()) {
@@ -37,7 +38,7 @@ ThreadPool::~ThreadPool() {
 }
 
 void ThreadPool::push(TaskPriority priority, queue::Task task) {
-    if (!stop_) {
+    if (!stop_.load(std::memory_order_acquire)) {
         task_queue_->push(priority, std::move(task));
     }
 }

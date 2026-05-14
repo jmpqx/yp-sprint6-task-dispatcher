@@ -54,6 +54,7 @@ std::optional<Task> PriorityQueue::pop() {
 
         do {
             result = queue->try_pop();
+            std::this_thread::yield();
         } while (!result && result.error() == Op::Locked);
 
         return result;
