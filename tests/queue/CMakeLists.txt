@@ -6,6 +6,11 @@ add_executable(${target}
     priority_queue.cpp
 )
 
+target_include_directories(${target}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
 target_link_libraries(${target}
     PRIVATE
         GTest::GTest
